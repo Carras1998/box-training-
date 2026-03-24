@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microciclo Boxeo</title>
+<meta name="description" content="10 sesiones de boxeo — Técnica, Core, Cuello y Sparring">
+<meta name="theme-color" content="#1a1a18">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Boxeo">
+<link id="manifest-placeholder" rel="manifest">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f4f0;padding:1rem;color:#1a1a18}
+.wrap{max-width:960px;margin:0 auto}
+.header{margin-bottom:1.25rem;padding-top:0.5rem}
+.header h1{font-size:19px;font-weight:600;color:#1a1a18;margin-bottom:3px}
+.header p{font-size:12px;color:#5f5e5a}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.25rem}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#5f5e5a}
+.leg-dot{width:7px;height:7px;border-radius:50%}
+.session-nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem}
+.snav-btn{font-size:12px;font-weight:500;padding:6px 11px;border-radius:8px;border:0.5px solid #b4b2a9;background:#e8e6e0;color:#5f5e5a;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.snav-btn:hover,.snav-btn:active{background:#fff;color:#1a1a18}
+.snav-btn.active{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.session-card{border:0.5px solid #d3d1c7;border-radius:12px;background:#fff;overflow:hidden}
+.session-title{padding:0.9rem 1.1rem;border-bottom:0.5px solid #d3d1c7;display:flex;align-items:baseline;gap:10px}
+.session-title h2{font-size:16px;font-weight:600;color:#1a1a18}
+.session-title .snum{font-size:12px;color:#888780;font-weight:500}
+.phase-bar{display:flex;gap:6px;padding:0.6rem 1.1rem;background:#f5f4f0;border-bottom:0.5px solid #d3d1c7;flex-wrap:wrap}
+.phase-tag{font-size:10px;padding:3px 9px;border-radius:8px;border:0.5px solid #d3d1c7;color:#888780;background:#fff;font-weight:500}
+.phase-tag.active-phase{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.blocks{display:grid;grid-template-columns:1fr 1fr}
+.block{padding:0.9rem 1.1rem;border-right:0.5px solid #d3d1c7;border-bottom:0.5px solid #d3d1c7}
+.block:nth-child(2){border-right:none}
+.block:nth-child(3){border-bottom:none}
+.block:nth-child(4){border-right:none;border-bottom:none}
+.block-label{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.block-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.block-label span{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#888780}
+.block-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;margin-bottom:7px}
+.block ul{list-style:none;padding:0}
+.block ul li{font-size:12px;color:#444441;line-height:1.65;padding-left:11px;position:relative;margin-bottom:1px}
+.block ul li::before{content:'—';position:absolute;left:0;color:#b4b2a9;font-size:9px;top:1px}
+.cal .block-dot{background:#E24B4A}
+.cal .block-badge{background:#FCEBEB;color:#A32D2D}
+.tec .block-dot{background:#378ADD}
+.tec .block-badge{background:#E6F1FB;color:#185FA5}
+.cor .block-dot{background:#1D9E75}
+.cor .block-badge{background:#E1F5EE;color:#0F6E56}
+.spa .block-dot{background:#EF9F27}
+.spa .block-badge{background:#FAEEDA;color:#854F0B}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>Microciclo de Boxeo</h1>
+    <p>10 sesiones — Técnica · Core · Cuello · Sparring</p>
+  </div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#E24B4A"></div>Calentamiento</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Técnica</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Core + Cuello</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Sparring</div>
+  </div>
+  <div class="session-nav" id="nav"></div>
+  <div id="card"></div>
+</div>
+
+<script>
+const sessions=[{n:1,title:"Distancia y Jab",phase:1,cal:{badge:"15 min comba",items:["Boxer Skip + rodillas altas","World's Greatest Stretch","Rotaciones torácicas en cuadrupedia","3 series — balón medicinal explosivo al suelo"]},tec:{badge:"6 asaltos × 3 min",items:["Saco: jab en líneas rectas y diagonales","Mano regresa siempre a la barbilla","Extensión completa + rotación del puño","Pera doble extremo: precisión y ritmo"]},cor:{badge:"Core + Cuello",items:["Pallof Press en polea — 3×15 cada lado","Anti-rotación: resistir fuerzas externas","Neck Flexions en banco con disco 2.5 kg","3×15 — movimiento lento y controlado"]},spa:{badge:"4 asaltos — jab only",items:["Alumno A: establece distancia","Alumno B: parrying + pasos atrás","Objetivo: comprender la zona de peligro","Neutralizar la mano delantera rival"]}},{n:2,title:"Ángulos y Pivote",phase:1,cal:{badge:"15 min comba",items:["Double Unders — reactividad de gemelos","Rotaciones dinámicas de hombros con bandas","Rotaciones de cadera con bandas elásticas","Preparación para trabajo de rotación"]},tec:{badge:"7 asaltos",items:["Saco: 1-2 + pivote 90° inmediato","Shifting: cambio de guardia en movimiento","Ortodoxo a zurdo para nuevos canales","Pera: golpear circulando el equipo"]},cor:{badge:"Core + Cuello",items:["Landmine Rotations en rack — 3×12","Arco de 180°, brazos estirados, core bloqueado","Arnés de cuello en polea: extensiones cervicales","Cadena posterior — resistir ganchos ascendentes"]},spa:{badge:"5 asaltos — ángulos",items:["A lanza jab-cross, B pivota tras defender","B termina en posición de ventaja","A no puede responder sin girar el cuerpo","Objetivo: posicionamiento dominante"]}},{n:3,title:"Defensa y Contraataque",phase:1,cal:{badge:"Escalera + sombra",items:["Escalera de agilidad — coordinación de pies","Shadowboxing con pesas 0.5-1 kg","3 asaltos × 2 min — velocidad de retracción","Activación del SNC con pesas ligeras"]},tec:{badge:"8 asaltos",items:["Saco: Jab-Slip-Cross (cabeza fuera del eje)","Pera: 1-2 + roll bajo gancho imaginario","Check hook: gancho con pivote defensivo","Defensa activa que carga el siguiente golpe"]},cor:{badge:"Core + Cuello",items:["Woodchoppers polea alta-baja — 3×15 cada lado","Imita trayectoria de hombros al golpear al cuerpo","Isometrías cervicales: 4 posiciones × 15 seg","Frente, atrás y ambos lados"]},spa:{badge:"6 asaltos — contraataque",items:["A lanza golpes simples y predecibles","B esquiva y responde con 2+ golpes","Reducir tiempo entre defensa y ataque","Puntuar velocidad de reacción"]}},{n:4,title:"Infight y Corta Distancia",phase:2,cal:{badge:"Ali Shuffle + movilidad",items:["Comba: rodillas altas + Ali Shuffle","Activación sistema anaeróbico","Movilidad articular cadera y columna","Facilitar rotaciones cortas en infight"]},tec:{badge:"6 asaltos",items:["Saco: trabajo pegado — ganchos y uppercuts cortos","Codos protegiendo costillas en golpes ascendentes","Pera: velocidad a corta distancia","Mantener ojos abiertos bajo presión"]},cor:{badge:"Core + Cuello",items:["Russian Twists con disco — piernas elevadas","Tensión máxima en recto + oblicuos","Neck Plate Curls de lado en banco — disco 1.25 kg","Músculos laterales: resistir ganchos del rival"]},spa:{badge:"6 asaltos — clinch",items:["Drill del neumático — pie adelantado dentro","Forzar combate a corta distancia","Clinch técnico para reposicionarse","Core controla el centro de gravedad del rival"]}},{n:5,title:"Geometría del Ring",phase:2,cal:{badge:"Reacción + sprints",items:["Pelota de tenis — atrapar antes del 2.° bote","Integrar desplazamientos de boxeo","Sprints de 3 m en guardia","Activar fibras de contracción rápida"]},tec:{badge:"8 asaltos",items:["Saco: desplazamiento lateral para interceptar","Golpes de poder para detener el saco en oscilación","Pera: avance constante con equilibrio","Pasos diagonales para cerrar rutas de escape"]},cor:{badge:"Core + Cuello",items:["Plank con shoulder taps en polea","Resistencia lateral — core vs fuerzas asimétricas","Banded Neck Rotations en rack a altura de cabeza","Giros lentos contra resistencia de la banda"]},spa:{badge:"6 asaltos — cazador/presa",items:["A huye con desplazamientos y jabs","B acorrala usando pasos diagonales y fintas","Sin golpes de poder — solo posicionamiento","Objetivo: dominar la geometría del cuadrilátero"]}},{n:6,title:"Volumen y Acondicionamiento",phase:2,cal:{badge:"15-20 min comba",items:["Sprint Intervals — 30 seg máxima / 30 descanso","Estiramientos dinámicos cadena posterior","Movilidad de cuello para aliviar tensión","Preparación para alta intensidad sostenida"]},tec:{badge:"10 asaltos — alta intensidad",items:["Saco: alternar asaltos de volumen puro y explosivos","Explosivo: 10 seg ráfaga + 20 seg defensa y jab","Pera: mano pesada vs mano rápida alternando","Desestabilizar el ritmo del oponente imaginario"]},cor:{badge:"Core + Cuello",items:["Hanging Knee Tucks en rack — 3×15","Recto inferior + flexores de cadera","Neck Flex/Ext con arnés: 25-30 reps","Resistencia muscular local bajo fatiga"]},spa:{badge:"8 asaltos × 2 min / 30 seg",items:["Simular fatiga de final de combate","Mínimo 60 golpes por asalto","Rectitud de golpes bajo cansancio","Retorno rápido a la guardia siempre"]}},{n:7,title:"Fintas y Engaño",phase:2,cal:{badge:"Sombra + Box Jumps",items:["Shadowboxing solo fintas — señales auditivas del coach","Fintas de ojos, hombros y pies","Box Jumps — potencia explosiva de piernas","Integración de piernas en la cadena del core"]},tec:{badge:"7 asaltos",items:["Saco: finta de jab → cross al cuerpo","Finta de cross → gancho izquierda a la cabeza","Finta convincente = respuesta defensiva real","Pera: golpeo tras finta de hombro"]},cor:{badge:"Core + Cuello",items:["Pallof Press con rotación en polea","Fuerza rotacional dinámica tras extensión de brazos","Isometrías dinámicas en rack con banda","Cabeza estable durante movimientos de sombra"]},spa:{badge:"6 asaltos — engaño táctico",items:["Instrucción específica de finta por asalto","Lograr que el rival reaccione a la finta","Lanzar el golpe real cuando el rival se abre","Puntuar eficiencia del engaño, no la fuerza"]}},{n:8,title:"Defensa en las Cuerdas",phase:3,cal:{badge:"Comba + movilidad torácica",items:["Comba con desplazamientos y cambios de ritmo","Poleas ligeras para estirar pectorales","Mayor retracción escapular en defensa cerrada","Movilidad torácica profunda"]},tec:{badge:"8 asaltos",items:["Espalda cerca del saco como referencia","Esquivas laterales y rolls con contacto visual","No perder de vista al oponente bajo presión","Pera: salida de cuerdas con pivote inmediato"]},cor:{badge:"Core + Cuello",items:["Deadbugs con resistencia en polea","Estabilidad lumbo-pélvica apoyado en cuerdas","Reverse Neck Curls boca abajo en banco","Esplenios y trapecio superior con disco ligero"]},spa:{badge:"6 asaltos — escapista",items:["A comienza cada intercambio en las cuerdas","B lanza combinaciones continuas de 3-4 golpes","A defiende y pivota para salir e invertir","B queda atrapado — invertir la posición de dominio"]}},{n:9,title:"Potencia Rotacional",phase:3,cal:{badge:"Balón medicinal pesado",items:["Balón 5-7 kg — rotación lateral contra la pared","Potencia pura en cada lanzamiento","Sprints de sombra 5 seg a máxima intensidad","Exhalaciones explosivas en cada sprint"]},tec:{badge:"7 asaltos",items:["Saco: combos de 2-3 golpes a potencia máxima","Rotación completa de cadera y hombro en cada golpe","Fijación del core en el momento del impacto","Pera: golpes aislados de alta velocidad — el golpe de gracia"]},cor:{badge:"Core + Cuello",items:["Landmine Press con rotación en rack","Potencia explosiva desde la base hasta extensión","Neck Bridges en superficie acolchada","Fuerza estructural global en columna cervical"]},spa:{badge:"5 asaltos — selectividad",items:["Ritmo lento — esperar la apertura clara","Combinación de poder de 2 golpes con técnica perfecta","Maximizar daño: precisión + rotación del core","Selectividad de golpes sobre cantidad"]}},{n:10,title:"Simulación de Combate",phase:3,cal:{badge:"25 min protocolo completo",items:["Comba + movilidad + ejercicios de reacción","3 asaltos de sombra técnica libre","Visualización del oponente durante el sombra","Activación completa del SNC"]},tec:{badge:"6+4 asaltos — freestyle élite",items:["Saco maestro: coach cambia instrucción cada 30 seg","Volumen, potencia, ángulos, defensa por turnos","Pera: fluidez total sin errores técnicos","Guardia perfecta incluso bajo fatiga máxima"]},cor:{badge:"Circuito final",items:["Pallof Press 3×15 · Woodchoppers 3×15","Harness Neck Extensions 3×20","Plate Neck Flexions 3×20","Isometría de core en rack 3×60 seg"]},spa:{badge:"10 asaltos × 3 min",items:["1-3: dominio con jab y control de distancia","4-6: ángulos, fintas y contraataques","7-8: infight y presión en cuerdas","9-10: combate libre — gestión de fatiga"]}}];
+
+const phaseNames={1:"Fase 1 — Fundamentos",2:"Fase 2 — Ángulos",3:"Fase 3 — Táctica"};
+function getPhase(n){return n<=3?1:n<=7?2:3}
+let current=0;
+
+function renderNav(){
+  document.getElementById('nav').innerHTML=sessions.map((s,i)=>`<button class="snav-btn${i===current?' active':''}" onclick="select(${i})">S${s.n}</button>`).join('');
+}
+function renderCard(){
+  const s=sessions[current];
+  const ph=getPhase(s.n);
+  document.getElementById('card').innerHTML=`<div class="session-card"><div class="phase-bar">${[1,2,3].map(p=>`<span class="phase-tag${ph===p?' active-phase':''}">${phaseNames[p]}</span>`).join('')}</div><div class="session-title"><span class="snum">Sesión ${s.n}</span><h2>${s.title}</h2></div><div class="blocks"><div class="block cal"><div class="block-label"><div class="block-dot"></div><span>Calentamiento</span></div><span class="block-badge">${s.cal.badge}</span><ul>${s.cal.items.map(i=>`<li>${i}</li>`).join('')}</ul></div><div class="block tec"><div class="block-label"><div class="block-dot"></div><span>Técnica</span></div><span class="block-badge">${s.tec.badge}</span><ul>${s.tec.items.map(i=>`<li>${i}</li>`).join('')}</ul></div><div class="block cor"><div class="block-label"><div class="block-dot"></div><span>Core + Cuello</span></div><span class="block-badge">${s.cor.badge}</span><ul>${s.cor.items.map(i=>`<li>${i}</li>`).join('')}</ul></div><div class="block spa"><div class="block-label"><div class="block-dot"></div><span>Sparring</span></div><span class="block-badge">${s.spa.badge}</span><ul>${s.spa.items.map(i=>`<li>${i}</li>`).join('')}</ul></div></div></div>`;
+}
+function select(i){current=i;renderNav();renderCard()}
+renderNav();renderCard();
+
+// PWA — manifest inline
+const manifest={name:"Microciclo Boxeo",short_name:"Boxeo",description:"10 sesiones de boxeo profesional",start_url:".",display:"standalone",background_color:"#f5f4f0",theme_color:"#1a1a18",orientation:"portrait",icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231a1a18'/><text y='.9em' font-size='70' x='12'>🥊</text></svg>",sizes:"192x192",type:"image/svg+xml"},{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231a1a18'/><text y='.9em' font-size='70' x='12'>🥊</text></svg>",sizes:"512x512",type:"image/svg+xml"}]};
+const mBlob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+document.getElementById('manifest-placeholder').href=URL.createObjectURL(mBlob);
+
+// Service Worker inline
+if('serviceWorker' in navigator){
+  const sw=`self.addEventListener('install',e=>e.waitUntil(caches.open('boxeo-v1').then(c=>c.addAll(['/']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+  const swBlob=new Blob([sw],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
+}
+</script>
+</body>
+</html>
