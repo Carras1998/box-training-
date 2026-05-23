@@ -4,13 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="application-name" content="Garaje Boxing">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Garaje Boxing">
 <meta name="theme-color" content="#0a0908">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230a0908'/%3E%3Crect x='0' y='460' width='512' height='52' fill='%23c41e3a'/%3E%3Ctext x='256' y='300' font-family='Arial Black,sans-serif' font-size='200' font-weight='900' fill='white' text-anchor='middle'%3EGB%3C/text%3E%3C/svg%3E">
-<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Garaje%20Boxing%22%2C%22short_name%22%3A%22G%20Boxing%22%2C%22description%22%3A%22Programa%20t%C3%A9cnico%2010%20sesiones%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230a0908%22%2C%22theme_color%22%3A%22%230a0908%22%2C%22orientation%22%3A%22portrait%22%7D">
+<link id="pwa-manifest" rel="manifest">
+<link id="pwa-icon" rel="apple-touch-icon">
 
 <title>GARAJE BOXING — Programa de 10 sesiones</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1408,6 +1405,13 @@ input, textarea { font-family: inherit; }
 }
 .install-fab:hover { background: var(--red-bright); transform: translateY(-2px); }
 .install-fab.hidden { display: none; }
+.install-fab.ready {
+  animation: fabPulse 1.8s ease-in-out infinite;
+}
+@keyframes fabPulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(196,30,58,0.45); }
+  50% { box-shadow: 0 8px 32px rgba(255,45,79,0.8), 0 0 0 8px rgba(196,30,58,0.15); }
+}
 
 .install-modal {
   position: fixed;
@@ -3662,22 +3666,13 @@ input, textarea { font-family: inherit; }
 <div class="install-modal" id="install-modal" hidden>
   <div class="install-modal__sheet">
     <h2 class="install-modal__title">Instalar en el móvil</h2>
-    <p class="install-modal__sub">Añade la app a tu pantalla de inicio para abrirla como una app nativa.</p>
-    <div class="install-tabs">
-      <button class="install-tab active" data-os="ios">iPhone / Safari</button>
-      <button class="install-tab" data-os="android">Android / Chrome</button>
-    </div>
-    <div class="install-steps active" data-steps="ios">
-      <div class="install-step"><span class="install-step__num">1</span><span>Abre esta página en <strong>Safari</strong> (no Chrome ni Firefox).</span></div>
-      <div class="install-step"><span class="install-step__num">2</span><span>Pulsa el botón <strong>compartir</strong> — icono de cuadrado con flecha hacia arriba, en la barra inferior.</span></div>
-      <div class="install-step"><span class="install-step__num">3</span><span>Desplázate y pulsa <strong>"Añadir a pantalla de inicio"</strong>.</span></div>
-      <div class="install-step"><span class="install-step__num">4</span><span>Dale el nombre que quieras y pulsa <strong>"Añadir"</strong>. Ya aparece en tu home.</span></div>
-    </div>
-    <div class="install-steps" data-steps="android">
+    <p class="install-modal__sub">Añade la app a tu pantalla de inicio para usarla como una app nativa sin barra del navegador.</p>
+    <div class="install-steps active" data-steps="android">
       <div class="install-step"><span class="install-step__num">1</span><span>Abre esta página en <strong>Chrome</strong>.</span></div>
       <div class="install-step"><span class="install-step__num">2</span><span>Pulsa los <strong>tres puntos</strong> (⋮) arriba a la derecha.</span></div>
       <div class="install-step"><span class="install-step__num">3</span><span>Pulsa <strong>"Añadir a pantalla de inicio"</strong> o <strong>"Instalar app"</strong>.</span></div>
-      <div class="install-step"><span class="install-step__num">4</span><span>Confirma pulsando <strong>"Instalar"</strong>. Aparece en tu home.</span></div>
+      <div class="install-step"><span class="install-step__num">4</span><span>Pulsa <strong>"Instalar"</strong> en el diálogo que aparece. Ya está en tu home.</span></div>
+      <div class="install-step"><span class="install-step__num">5</span><span>Si no aparece la opción, espera unos segundos y vuelve a intentarlo — Chrome tarda un momento en verificar la app.</span></div>
     </div>
     <button class="install-modal__close-btn" id="install-modal-close">Cerrar</button>
   </div>
@@ -4354,54 +4349,110 @@ document.querySelectorAll('.tool-preset').forEach(btn => {
 
 
 // ============================================================
-// INSTALL / PWA
+// PWA SETUP — manifest + service worker + icons via blob URLs
+// (single-file approach: no external files needed)
 // ============================================================
-const installFab = document.getElementById('install-fab');
+
+// ── Generate icon PNG via canvas ─────────────────────────────────────────────
+function generateIcon(size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  // Background
+  ctx.fillStyle = '#0a0908';
+  ctx.fillRect(0, 0, size, size);
+  // Red bottom bar
+  ctx.fillStyle = '#c41e3a';
+  ctx.fillRect(0, size * 0.88, size, size * 0.12);
+  // Red top accent
+  ctx.fillStyle = '#c41e3a';
+  ctx.fillRect(0, 0, size, size * 0.04);
+  // "GB" text
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `900 ${size * 0.44}px Arial Black, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('GB', size / 2, size * 0.46);
+  // Gold dot
+  ctx.fillStyle = '#d4a017';
+  ctx.beginPath();
+  ctx.arc(size * 0.72, size * 0.26, size * 0.06, 0, Math.PI * 2);
+  ctx.fill();
+  return c.toDataURL('image/png');
+}
+
+const icon192 = generateIcon(192);
+const icon512 = generateIcon(512);
+
+// Set apple-touch-icon (iOS home screen)
+document.getElementById('pwa-icon').href = icon192;
+
+// ── Service worker: not needed (Chrome 93+ installs without SW) ──────────────
+
+// ── Build and inject manifest via blob ───────────────────────────────────────
+const manifest = {
+  name: 'Garaje Boxing',
+  short_name: 'GB',
+  description: 'Programa técnico de boxeo — 10 sesiones',
+  start_url: './',
+  display: 'standalone',
+  background_color: '#0a0908',
+  theme_color: '#0a0908',
+  orientation: 'portrait-primary',
+  categories: ['sports', 'health'],
+  icons: [
+    { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+    { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+  ]
+};
+const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+const manifestURL = URL.createObjectURL(manifestBlob);
+document.getElementById('pwa-manifest').href = manifestURL;
+
+// ── Install button / prompt ───────────────────────────────────────────────────
+const installFab   = document.getElementById('install-fab');
 const installModal = document.getElementById('install-modal');
 const installModalClose = document.getElementById('install-modal-close');
 
-// Detect if already installed as standalone
 function isStandalone() {
   try {
-    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-           window.navigator.standalone === true;
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || window.navigator.standalone === true;
   } catch(e) { return false; }
 }
 if (isStandalone()) installFab.classList.add('hidden');
 
-// iOS beforeinstallprompt doesn't fire; Android does
+// Android Chrome fires beforeinstallprompt when PWA criteria are met
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
+  // Show FAB with pulse to signal it's ready
+  installFab.classList.remove('hidden');
+  installFab.classList.add('ready');
 });
 
 installFab.addEventListener('click', () => {
   if (deferredPrompt) {
-    // Android native prompt available
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+    deferredPrompt.userChoice.then(({ outcome }) => {
+      deferredPrompt = null;
+      if (outcome === 'accepted') installFab.classList.add('hidden');
+    });
   } else {
-    // iOS or already installed — show manual instructions
     installModal.hidden = false;
   }
 });
 
-installModalClose.addEventListener('click', () => {
-  installModal.hidden = true;
+window.addEventListener('appinstalled', () => {
+  installFab.classList.add('hidden');
+  deferredPrompt = null;
 });
 
-// OS tabs in install modal
-document.querySelectorAll('.install-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.install-steps').forEach(s => s.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelector('[data-steps="' + tab.dataset.os + '"]').classList.add('active');
-  });
-});
+installModalClose.addEventListener('click', () => { installModal.hidden = true; });
 
-// Hide fab after app opens as standalone (re-check on focus)
+
+
 window.addEventListener('focus', () => {
   if (isStandalone()) installFab.classList.add('hidden');
 });
